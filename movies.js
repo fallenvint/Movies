@@ -1,4 +1,3 @@
-document.addEventListener('DOMContentLoaded', () => {
 let requestMoviesURL = 'https://api.themoviedb.org/3/movie/now_playing?api_key=ebea8cfca72fdff8d2624ad7bbf78e4c';
 const urlPostfix = '&page=';
 const posterUrl = 'http://image.tmdb.org/t/p/w342';
@@ -243,4 +242,3 @@ const removeUnfavorite = () => {
 		}
 	});
 };
-});
