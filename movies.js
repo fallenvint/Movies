@@ -54,8 +54,6 @@ request.onload = function () {
 		});
 	});
 
-	console.log(response);
-
 	addPagination();
 };
 
@@ -101,6 +99,7 @@ const createModal = (id, poster, title, score, date, overview) => {
 	} else {
 		favoriteBtn.innerHTML = 'Add to favorite';
 	}
+	
 	favoriteBtn.setAttribute('id','favorite-list');
 	favoriteBtn.classList.add('button');
 	document.querySelector('.modal-movie_favorite').appendChild(favoriteBtn);
@@ -232,43 +231,43 @@ const addPagination = () => {
 	for (let prop in paginObj) {
 		switch (true) {
 			case (!paginObj[prop]):
-				insert += ``;
-				break;
+			insert += ``;
+			break;
 			case (paginObj[prop] === true):
-				insert += `<span>...</span>`;
-				break;
+			insert += `<span>...</span>`;
+			break;
 			case (paginObj[prop] < 4 && prop === "current"):
-				insert += `
-				<button class="button" data-id="1">1</button>
-				<button class="button" data-id="2">2</button>
-				<button class="button" data-id="3">3</button>
-				<button class="button" data-id="4">4</button>
-				<button class="button" data-id="5">5</button>
-				`;
-				break;
+			insert += `
+			<button class="button" data-id="1">1</button>
+			<button class="button" data-id="2">2</button>
+			<button class="button" data-id="3">3</button>
+			<button class="button" data-id="4">4</button>
+			<button class="button" data-id="5">5</button>
+			`;
+			break;
 			case (paginObj[prop] > response.total_pages-4 && prop === "current"):
-				insert += `
-				<button class="button" data-id="${response.total_pages-4}">${response.total_pages-4}</button>
-				<button class="button" data-id="${response.total_pages-3}">${response.total_pages-3}</button>
-				<button class="button" data-id="${response.total_pages-2}">${response.total_pages-2}</button>
-				<button class="button" data-id="${response.total_pages-1}">${response.total_pages-1}</button>
-				<button class="button" data-id="${response.total_pages}">${response.total_pages}</button>
-				`;
-				break;
+			insert += `
+			<button class="button" data-id="${response.total_pages-4}">${response.total_pages-4}</button>
+			<button class="button" data-id="${response.total_pages-3}">${response.total_pages-3}</button>
+			<button class="button" data-id="${response.total_pages-2}">${response.total_pages-2}</button>
+			<button class="button" data-id="${response.total_pages-1}">${response.total_pages-1}</button>
+			<button class="button" data-id="${response.total_pages}">${response.total_pages}</button>
+			`;
+			break;
 			case (paginObj[prop] >= 4 && prop === "current"):
-				insert += `
-				<button class="button" data-id="${paginObj[prop]-2}">${paginObj[prop]-2}</button>
-				<button class="button" data-id="${paginObj[prop]-1}">${paginObj[prop]-1}</button>
-				<button class="current" data-id="${paginObj[prop]}">${paginObj[prop]}</button>
-				<button class="button" data-id="${paginObj[prop]+1}">${paginObj[prop]+1}</button>
-				<button class="button" data-id="${paginObj[prop]+2}">${paginObj[prop]+2}</button>
-				`;
-				break;
+			insert += `
+			<button class="button" data-id="${paginObj[prop]-2}">${paginObj[prop]-2}</button>
+			<button class="button" data-id="${paginObj[prop]-1}">${paginObj[prop]-1}</button>
+			<button class="current" data-id="${paginObj[prop]}">${paginObj[prop]}</button>
+			<button class="button" data-id="${paginObj[prop]+1}">${paginObj[prop]+1}</button>
+			<button class="button" data-id="${paginObj[prop]+2}">${paginObj[prop]+2}</button>
+			`;
+			break;
 			default:
-				insert += `
-				<button class="button" data-id="${paginObj[prop]}">${prop}</button>
-				`;
-				break;
+			insert += `
+			<button class="button" data-id="${paginObj[prop]}">${prop}</button>
+			`;
+			break;
 		}
 	}
 
@@ -278,15 +277,12 @@ const addPagination = () => {
 	currentBtn.classList.remove('button');
 	currentBtn.classList.add('current');
 	
-
 	pagination.addEventListener('click', (e) => {
 		if(e.target.classList.contains('button')){
 			pageContent.innerHTML = '';
 			loadRequest(requestMoviesURL+urlPostfix+e.target.dataset.id);
 		}
 	});
-
-
 };
 
 const removeUnfavorite = () => {
