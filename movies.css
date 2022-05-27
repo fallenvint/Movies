@@ -127,9 +127,6 @@ main {
 	bottom: 0;
 	left: 0;
 	right: 0;
-	background-repeat: no-repeat;
-	background-size: cover;
-	background-position: top center;
 }
 
 .modal-container {
@@ -215,11 +212,22 @@ main {
 
 .page-pagination button {
 	border-radius: 0;
+	text-transform: capitalize;
 }
 
-.page-pagination button.current {
+.page-pagination span {
+	display: flex;
+	align-items: flex-end;
+	padding: 0 8px;
+}
+
+.page-pagination .current {
+	display: flex;
+	padding: 8px;
+	border-radius: 3px;
 	background-color: #bdbdbd;
 	color: #ffffff;
+	cursor: not-allowed;
 }
 
 .hide {

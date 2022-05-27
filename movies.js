@@ -15,7 +15,6 @@ let response;
 let movies;
 let currentMovieIndex;
 let currentPage;
-let paginObj;
 
 logoBlock.addEventListener('click', () => {
 	window.location.href = window.location.href.split('#')[0];
@@ -46,14 +45,16 @@ request.onload = function () {
 
 	allPosters.forEach((item, index) => {
 		item.addEventListener('click', function(){
-			currentMovieIndex = index;
+			(index === response.results.length-1)? currentMovieIndex = 0 : currentMovieIndex = index+1;
+
 			pageContent.parentElement.classList.add('hide');
 			modalBlock.classList.remove('hide');
-			modalBlock.style.backgroundImage = `url('${posterUrl}${movies[index].backdrop_path}')`;
+			modalBlock.style.background = `url('${posterUrl}${movies[index].backdrop_path}') no-repeat top center / cover #cfd8dc`;
 			createModal(movies[index].id, movies[index].poster_path, movies[index].title, movies[index].vote_average, movies[index].release_date, movies[index].overview);
-			window.location.hash = movies[index].title;
 		});
 	});
+
+	console.log(response);
 
 	addPagination();
 };
@@ -91,7 +92,7 @@ const createModal = (id, poster, title, score, date, overview) => {
 	</div>
 	`;
 
-	if(currentMovieIndex === 19){
+	if(currentPage === response.total_pages && currentMovieIndex === 0) {
 		document.getElementById('next-movie').classList.add('hide');
 	}
 
@@ -103,6 +104,7 @@ const createModal = (id, poster, title, score, date, overview) => {
 	favoriteBtn.setAttribute('id','favorite-list');
 	favoriteBtn.classList.add('button');
 	document.querySelector('.modal-movie_favorite').appendChild(favoriteBtn);
+	window.location.hash = title.toLowerCase();
 	document.title = title;
 };
 
@@ -117,11 +119,23 @@ const returnToList = () => {
 };
 
 const goNextMovie = (index) => {
-	modalBlock.innerHTML = '';
-	currentMovieIndex++;
-	modalBlock.style.backgroundImage = `url('${posterUrl}${movies[index+1].backdrop_path}')`;
-	createModal(movies[index+1].id, movies[index+1].poster_path, movies[index+1].title, movies[index+1].vote_average, movies[index+1].release_date, movies[index+1].overview);
-	window.location.hash = movies[index+1].title;
+	let waitTime;
+	(index === response.results.length-1)? currentMovieIndex = 0 : currentMovieIndex++;
+
+	if (index === 0 && currentPage !== response.total_pages) {
+		pageContent.innerHTML = '';
+		loadRequest(requestMoviesURL+urlPostfix+(currentPage+1));
+		document.getElementById('next-movie').disabled = true;
+		waitTime = 500;
+	} else {
+		waitTime = 0;
+	}
+
+	setTimeout(() => {
+		modalBlock.innerHTML = '';
+		modalBlock.style.background = `url('${posterUrl}${movies[index].backdrop_path}') no-repeat top center / cover #cfd8dc`;
+		createModal(movies[index].id, movies[index].poster_path, movies[index].title, movies[index].vote_average, movies[index].release_date, movies[index].overview);
+	}, waitTime);
 };
 
 function Movie(id, title, poster_path, overview) {
@@ -131,7 +145,7 @@ function Movie(id, title, poster_path, overview) {
 	this.overview = overview;
 }
 
-const compare = (element, object) => element.id === movieObj.id;
+const compare = (element) => element.id === movieObj.id;
 
 favoriteBtn.addEventListener('click', () => {
 	if (favoriteFilmList.some(compare)) {
@@ -151,7 +165,7 @@ favoriteBtn.addEventListener('click', () => {
 });
 
 favoriteListBtn.addEventListener('click', (e) => {
-	window.location.hash = 'My favorite';
+	window.location.hash = 'my favorite';
 	favoriteListBtn.classList.add('active');
 	modalBlock.innerHTML = '';
 	modalBlock.dataset.id = '';
@@ -188,27 +202,82 @@ favoriteListBtn.addEventListener('click', (e) => {
 });
 
 const addPagination = () => {
+	let insert = '';
 	currentPage = response.page;
 	pagination.classList.add('page-pagination');
 	pageContent.after(pagination);
 
-	paginObj = {
+	let paginObj = {
+		get first() {
+			return currentPage === 1 ? '' : 1;
+		},
+		get prev() {
+			return this.current-1
+		},
+		get spaceBefore() {
+			return currentPage < 4 ? '' : true;
+		},
 		current: currentPage,
-		next: currentPage+1,
-		prev: currentPage-1,
-		first: 1,
-		last: response.total_pages
+		get spaceAfter() {
+			return currentPage <= response.total_pages-4 ? true : '';
+		},
+		get next() {
+			return currentPage != response.total_pages ? this.current+1 : ''; 
+		},
+		get last() {
+			return currentPage != response.total_pages ? response.total_pages : '';
+		}
 	}
 
-	pagination.innerHTML = `
-		<button id="first-page" class="button" data-id="${paginObj.first}">First</button>
-		<button id="prev-page" class="button" data-id="${paginObj.prev}">Previous</button>
-		<button id="button-${paginObj.prev}" class="button" data-id="${paginObj.prev}">${paginObj.prev}</button>
-		<button id="button-${paginObj.current}" class="button current" data-id="${paginObj.current}">${paginObj.current}</button>
-		<button id="button-${paginObj.next}" class="button" data-id="${paginObj.next}">${paginObj.next}</button>
-		<button id="next-page" class="button" data-id="${paginObj.next}">Next</button>
-		<button id="last-page" class="button" data-id="${paginObj.last}">Last</button>
-	`;
+	for (let prop in paginObj) {
+		switch (true) {
+			case (!paginObj[prop]):
+				insert += ``;
+				break;
+			case (paginObj[prop] === true):
+				insert += `<span>...</span>`;
+				break;
+			case (paginObj[prop] < 4 && prop === "current"):
+				insert += `
+				<button class="button" data-id="1">1</button>
+				<button class="button" data-id="2">2</button>
+				<button class="button" data-id="3">3</button>
+				<button class="button" data-id="4">4</button>
+				<button class="button" data-id="5">5</button>
+				`;
+				break;
+			case (paginObj[prop] > response.total_pages-4 && prop === "current"):
+				insert += `
+				<button class="button" data-id="${response.total_pages-4}">${response.total_pages-4}</button>
+				<button class="button" data-id="${response.total_pages-3}">${response.total_pages-3}</button>
+				<button class="button" data-id="${response.total_pages-2}">${response.total_pages-2}</button>
+				<button class="button" data-id="${response.total_pages-1}">${response.total_pages-1}</button>
+				<button class="button" data-id="${response.total_pages}">${response.total_pages}</button>
+				`;
+				break;
+			case (paginObj[prop] >= 4 && prop === "current"):
+				insert += `
+				<button class="button" data-id="${paginObj[prop]-2}">${paginObj[prop]-2}</button>
+				<button class="button" data-id="${paginObj[prop]-1}">${paginObj[prop]-1}</button>
+				<button class="current" data-id="${paginObj[prop]}">${paginObj[prop]}</button>
+				<button class="button" data-id="${paginObj[prop]+1}">${paginObj[prop]+1}</button>
+				<button class="button" data-id="${paginObj[prop]+2}">${paginObj[prop]+2}</button>
+				`;
+				break;
+			default:
+				insert += `
+				<button class="button" data-id="${paginObj[prop]}">${prop}</button>
+				`;
+				break;
+		}
+	}
+
+	pagination.innerHTML = insert;
+
+	let currentBtn = pagination.querySelector(`button[data-id="${currentPage}"]`);
+	currentBtn.classList.remove('button');
+	currentBtn.classList.add('current');
+	
 
 	pagination.addEventListener('click', (e) => {
 		if(e.target.classList.contains('button')){
@@ -217,15 +286,7 @@ const addPagination = () => {
 		}
 	});
 
-	if(paginObj.current === paginObj.last){
-		document.getElementById(`button-${paginObj.next}`).classList.add('hide');
-		document.getElementById('next-page').classList.add('hide');
-		document.getElementById('last-page').classList.add('hide');
-	} else if(paginObj.current === paginObj.first){
-		document.getElementById('first-page').classList.add('hide');
-		document.getElementById('prev-page').classList.add('hide');
-		document.getElementById(`button-${paginObj.prev}`).classList.add('hide');
-	}
+
 };
 
 const removeUnfavorite = () => {
@@ -238,7 +299,7 @@ const removeUnfavorite = () => {
 		if (e.target.classList.contains('button')) {
 			favoriteFilmList.splice(movieId, 1);
 			localStorage.setItem('movies', JSON.stringify(favoriteFilmList));
-			e.target.classList.add('hide');
+			e.target.closest('.favorite').remove();
 		}
 	});
 };
